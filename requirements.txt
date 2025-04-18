@@ -1,0 +1,4 @@
+Flask
+pandas
+prophet
+python-dotenv
