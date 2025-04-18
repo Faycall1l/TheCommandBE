@@ -8,7 +8,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), '../../data/trending_data.js
 
 @recommend_blueprint.route("/recommendations", methods=["GET"])
 def get_trends():
-    niche = request.args.get("niche", "").lower()
+    niche = request.args.get("niche", "") #.lower()
 
     if not niche:
         return jsonify({"error": "Please provide a niche as a query parameter."}), 400

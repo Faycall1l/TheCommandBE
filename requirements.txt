@@ -2,3 +2,5 @@ Flask
 pandas
 prophet
 python-dotenv
+supabase
+google.generativeai
