@@ -1,28 +1,33 @@
 from flask import Blueprint, request, jsonify
-import json
-import os
+from app.utils.supabase_client import supabase
 
 recommend_blueprint = Blueprint("recommend", __name__)
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), '../../data/trending_data.json')
-
 @recommend_blueprint.route("/recommendations", methods=["GET"])
-def get_trends():
-    niche = request.args.get("niche", "") #.lower()
+def get_recommendations():
+    niche_name = request.args.get("niche")
+    
+    if not niche_name:
+        return jsonify({"error": "Missing 'niche' parameter"}), 400
 
-    if not niche:
-        return jsonify({"error": "Please provide a niche as a query parameter."}), 400
+    # Fetch the niche
+    niche_data = supabase.table("niche").select("*").eq("niche_name", niche_name).execute()
 
-    try:
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            trending = json.load(f)
+    if not niche_data.data:
+        return jsonify({"error": "Niche not found"}), 404
 
-        if niche not in trending:
-            return jsonify({"error": f"Niche '{niche}' not found."}), 404
+    niche_id = niche_data.data[0]["id"]
 
-        return jsonify({
-            "niche": niche,
-            "recommendations": trending[niche]
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Fetch related data
+    media_plan = supabase.table("media_plan").select("*").eq("niche_id", niche_id).execute()
+    ideas = supabase.table("idea").select("*").eq("niche_id", niche_id).execute()
+    peaks = supabase.table("peak").select("*").eq("niche_id", niche_id).execute()
+    products = supabase.table("product").select("*").eq("niche_id", niche_id).order("number_of_sales", desc=True).limit(5).execute()
+
+    return jsonify({
+        "niche": niche_data.data[0],
+        "top_products": products.data,
+        "media_plan": media_plan.data,
+        "ideas": ideas.data,
+        "peaks": peaks.data
+    })
