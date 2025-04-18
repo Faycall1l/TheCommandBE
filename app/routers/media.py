@@ -3,6 +3,7 @@ from app.services.media_planner import generate_media_plan
 import json
 from app.utils.supabase_client import supabase
 from app.utils.plan_clean import clean_media_plan_text
+import pandas as pd
 
 
 
@@ -40,6 +41,7 @@ def get_media_plan():
                 "title": f"Media Plan for {niche}",
                 "description": json.dumps(plan),
                 "niche_id": niche_id,
+                "date": pd.Timestamp.now().isoformat()
             }).execute()
 
 
