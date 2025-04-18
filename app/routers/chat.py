@@ -8,20 +8,50 @@ chat_blueprint = Blueprint("chat", __name__)
 
 @chat_blueprint.route("/ask", methods=["POST"])
 def ask_advisor():
-    file = request.files.get("file")
-    sku_id = request.form.get("sku_id")
-    question = request.form.get("question")
+    """Endpoint for sales forecasting and business advice"""
+    # Validate required inputs
+    if 'file' not in request.files or not request.files['file']:
+        return jsonify({"error": "Sales data file is required"}), 400
+    
+    file = request.files['file']
+    sku_id = request.form.get('sku_id')
+    question = request.form.get('question')
 
-    if not file or not sku_id or not question:
-        return jsonify({"error": "file, sku_id, and question are required"}), 400
+    if not sku_id or not sku_id.isdigit():
+        return jsonify({"error": "Valid SKU ID is required"}), 400
+    if not question or len(question.strip()) < 5:
+        return jsonify({"error": "Detailed question is required"}), 400
 
     try:
-        file_bytes = BytesIO(file.read())
-        history_df = clean_sales_data(file_bytes)
-        file_bytes.seek(0)
-        forecast_df = forecast_from_csv(file_bytes, sku_id)
+        # Process file once and reuse
+        file_content = file.read()
+        
+        # Get historical data
+        history_df = clean_sales_data(BytesIO(file_content))
+        
+        # Get forecast
+        forecast_result = forecast_from_csv(BytesIO(file_content), int(sku_id))
+        if forecast_result.get('status') != 'success':
+            return jsonify({
+                "error": forecast_result.get('error', 'Forecast generation failed'),
+                "details": forecast_result
+            }), 400
 
-        response = get_chat_response(forecast_df, history_df, question)
-        return jsonify({"answer": response})
+        # Get AI response
+        response = get_chat_response(
+            forecast_data=forecast_result['forecast'],
+            history_df=history_df,
+            question=question
+        )
+
+        return jsonify({
+            "answer": response,
+            "forecast": forecast_result['forecast'],
+            "status": "success"
+        })
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "error": "Processing error",
+            "details": str(e)
+        }), 500
