@@ -10,7 +10,7 @@ model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
 
 PROMPT_TEMPLATE = """
 You're a media strategist for a direct-to-consumer (DTC) brand in the {niche} niche. 
-Based on the projected sales data below, generate a media plan for the next 4 weeks. 
+Based on the projected sales data below, that we got from an already established business, generate a media plan for the next 4 weeks, with a posting schedule, provide when to post each post. 
 
 Plan should include:
 - Social media post ideas (e.g. IG, TikTok, YouTube Shorts)

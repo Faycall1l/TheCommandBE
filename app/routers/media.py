@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify
 from app.services.media_planner import generate_media_plan
 import json
 from app.utils.supabase_client import supabase
+from app.utils.plan_clean import clean_media_plan_text
+
+
 
 media_blueprint = Blueprint("media", __name__)
 
@@ -29,7 +32,7 @@ def get_media_plan():
             for row in forecast_data
         ])
 
-        plan = generate_media_plan(forecast_data=text, niche=niche)
+        plan = clean_media_plan_text(generate_media_plan(forecast_data=text, niche=niche))
 
         if niche_id:
             # Save the media plan to the database
