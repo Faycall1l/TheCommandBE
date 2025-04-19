@@ -3,7 +3,7 @@ import pandas as pd
 from typing import List, Dict
 
 # Configure AI model
-genai.configure(api_key="AIzaSyAND61l0rHF-p2UQg28RSMe62DZgQOHsLE")
+genai.configure(api_key="apikey")
 model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
 
 PROMPT_TEMPLATE = """
